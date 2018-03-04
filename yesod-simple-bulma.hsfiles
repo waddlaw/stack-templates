@@ -40,10 +40,6 @@ $ stack exec -- yesod add-handler -r ROUTE_NAME -p PATH_PATTERN -m METHOD
 $ touch src/Settings/StaticFiles.hs
 ```
 
-# Update app-static-dir
-$ touch src/Settings/StaticFiles.hs
-```
-
 {-# START_FILE app/DevelMain.hs #-}
 module DevelMain where
 
