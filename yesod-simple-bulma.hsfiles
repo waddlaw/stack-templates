@@ -637,38 +637,39 @@ unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
 -- https://github.com/yesodweb/yesod/wiki/i18n-messages-in-the-scaffolding
 
 {-# START_FILE src/Handler/Common.hs #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 -- | Common handler functions.
 module Handler.Common where
 
-import Data.FileEmbed (embedFile)
-import Import
+import           Data.FileEmbed (embedFile)
+import           Import
 
 -- These handlers embed files in the executable at compile time to avoid a
 -- runtime dependency, and for efficiency.
 
 getFaviconR :: Handler TypedContent
-getFaviconR = do cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
-                 return $ TypedContent "image/x-icon"
-                        $ toContent $(embedFile "config/favicon.ico")
+getFaviconR = do
+  cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
+  return $ TypedContent "image/x-icon" $ toContent
+    $(embedFile "config/favicon.ico")
 
 getRobotsR :: Handler TypedContent
-getRobotsR = return $ TypedContent typePlain
-                    $ toContent $(embedFile "config/robots.txt")
+getRobotsR =
+  return $ TypedContent typePlain $ toContent $(embedFile "config/robots.txt")
 
 {-# START_FILE src/Handler/Home.hs #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 module Handler.Home where
 
-import Import
+import           Import
 
 getHomeR :: Handler Html
 getHomeR = do
@@ -681,8 +682,8 @@ module Import
   ( module Import
   ) where
 
-import Foundation            as Import
-import Import.NoFoundation   as Import
+import           Foundation          as Import
+import           Import.NoFoundation as Import
 
 {-# START_FILE src/Import/NoFoundation.hs #-}
 {-# LANGUAGE CPP #-}
@@ -690,11 +691,11 @@ module Import.NoFoundation
     ( module Import
     ) where
 
-import ClassyPrelude.Yesod   as Import
-import Settings              as Import
-import Settings.StaticFiles  as Import
-import Yesod.Core.Types      as Import (loggerSet)
-import Yesod.Default.Config2 as Import
+import           ClassyPrelude.Yesod   as Import
+import           Settings              as Import
+import           Settings.StaticFiles  as Import
+import           Yesod.Core.Types      as Import (loggerSet)
+import           Yesod.Default.Config2 as Import
 
 {-# START_FILE src/Settings.hs #-}
 {-# LANGUAGE CPP               #-}
@@ -709,17 +710,18 @@ import Yesod.Default.Config2 as Import
 -- declared in the Foundation.hs file.
 module Settings where
 
-import ClassyPrelude.Yesod
-import qualified Control.Exception as Exception
-import Data.Aeson                  (Result (..), fromJSON, withObject, (.!=),
-                                    (.:?))
-import Data.FileEmbed              (embedFile)
-import Data.Yaml                   (decodeEither')
-import Language.Haskell.TH.Syntax  (Exp, Name, Q)
-import Network.Wai.Handler.Warp    (HostPreference)
-import Yesod.Default.Config2       (applyEnvValue, configSettingsYml)
-import Yesod.Default.Util          (WidgetFileSettings, widgetFileNoReload,
-                                    widgetFileReload)
+import           ClassyPrelude.Yesod
+import qualified Control.Exception          as Exception
+import           Data.Aeson                 (Result (..), fromJSON, withObject,
+                                             (.!=), (.:?))
+import           Data.FileEmbed             (embedFile)
+import           Data.Yaml                  (decodeEither')
+import           Language.Haskell.TH.Syntax (Exp, Name, Q)
+import           Network.Wai.Handler.Warp   (HostPreference)
+import           Yesod.Default.Config2      (applyEnvValue, configSettingsYml)
+import           Yesod.Default.Util         (WidgetFileSettings,
+                                             widgetFileNoReload,
+                                             widgetFileReload)
 
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
@@ -818,7 +820,7 @@ configSettingsYmlValue = either Exception.throw id
 compileTimeAppSettings :: AppSettings
 compileTimeAppSettings =
     case fromJSON $ applyEnvValue False mempty configSettingsYmlValue of
-        Error e -> error e
+        Error e          -> error e
         Success settings -> settings
 
 -- The following two functions can be used to combine multiple CSS or JS files
@@ -843,8 +845,8 @@ combineScripts = combineScripts'
 {-# LANGUAGE TemplateHaskell   #-}
 module Settings.StaticFiles where
 
-import Settings     (appStaticDir, compileTimeAppSettings)
-import Yesod.Static (staticFiles)
+import           Settings     (appStaticDir, compileTimeAppSettings)
+import           Yesod.Static (staticFiles)
 
 -- This generates easy references to files in the static directory at compile time,
 -- giving you compile-time verification that referenced files exist.
@@ -924,7 +926,6 @@ $newline never
 {-# START_FILE templates/default-layout.hamlet #-}
 ^{widget}
 
-
 {-# START_FILE templates/homepage.hamlet #-}
 HOMEPAGE
 
@@ -935,7 +936,7 @@ HOMEPAGE
 {-# START_FILE test/Handler/CommonSpec.hs #-}
 module Handler.CommonSpec (spec) where
 
-import TestImport
+import           TestImport
 
 spec :: Spec
 spec = withApp $ do
@@ -956,60 +957,59 @@ spec = withApp $ do
 {-# LANGUAGE OverloadedStrings #-}
 module Handler.HomeSpec (spec) where
 
-import TestImport
+import           TestImport
 
 spec :: Spec
 spec = withApp $ do
+  describe "Homepage" $ do
+    it "loads the index and checks it looks right" $ do
+      get HomeR
+      statusIs 200
+      htmlAnyContain "h1" "a modern framework for blazing fast websites"
 
-    describe "Homepage" $ do
-      it "loads the index and checks it looks right" $ do
-          get HomeR
-          statusIs 200
-          htmlAnyContain "h1" "a modern framework for blazing fast websites"
+      request $ do
+        setMethod "POST"
+        setUrl HomeR
+        addToken
+        fileByLabel "Choose a file" "test/Spec.hs" "text/plain" -- talk about self-reference
+        byLabel "What's on the file?" "Some Content"
 
-          request $ do
-              setMethod "POST"
-              setUrl HomeR
-              addToken
-              fileByLabel "Choose a file" "test/Spec.hs" "text/plain" -- talk about self-reference
-              byLabel "What's on the file?" "Some Content"
-
-          -- more debugging printBody
-          htmlAllContain ".upload-response" "text/plain"
-          htmlAllContain ".upload-response" "Some Content"
+      -- more debugging printBody
+      htmlAllContain ".upload-response" "text/plain"
+      htmlAllContain ".upload-response" "Some Content"
 
 {-# START_FILE test/Spec.hs #-}
 {-# OPTIONS_GHC -F -pgmF hspec-discover #-}
 
 {-# START_FILE test/TestImport.hs #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
 module TestImport
     ( module TestImport
     , module X
     ) where
 
-import Application           (makeFoundation, makeLogWare)
-import ClassyPrelude         as X hiding (Handler)
-import Foundation            as X
-import Test.Hspec            as X
-import Yesod.Default.Config2 (useEnv, loadYamlSettings)
-import Yesod.Test            as X
-import Yesod.Core.Unsafe     (fakeHandlerGetLogger)
+import           Application           (makeFoundation, makeLogWare)
+import           ClassyPrelude         as X hiding (Handler)
+import           Foundation            as X
+import           Test.Hspec            as X
+import           Yesod.Core.Unsafe     (fakeHandlerGetLogger)
+import           Yesod.Default.Config2 (loadYamlSettings, useEnv)
+import           Yesod.Test            as X
 
 runHandler :: Handler a -> YesodExample App a
 runHandler handler = do
-    app <- getTestYesod
-    fakeHandlerGetLogger appLogger app handler
+  app <- getTestYesod
+  fakeHandlerGetLogger appLogger app handler
 
 
 withApp :: SpecWith (TestApp App) -> Spec
 withApp = before $ do
-    settings <- loadYamlSettings
-        ["config/test-settings.yml", "config/settings.yml"]
-        []
-        useEnv
-    foundation <- makeFoundation settings
-    logWare <- liftIO $ makeLogWare foundation
-    return (foundation, logWare)
+  settings <- loadYamlSettings
+    ["config/test-settings.yml", "config/settings.yml"]
+    []
+    useEnv
+  foundation <- makeFoundation settings
+  logWare    <- liftIO $ makeLogWare foundation
+  return (foundation, logWare)
