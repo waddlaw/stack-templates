@@ -43,29 +43,29 @@ $ touch src/Settings/StaticFiles.hs
 {-# START_FILE app/DevelMain.hs #-}
 module DevelMain where
 
-import Prelude
-import Application (getApplicationRepl, shutdownApp)
+import           Application              (getApplicationRepl, shutdownApp)
+import           Prelude
 
-import Control.Exception (finally)
-import Control.Monad ((>=>))
-import Control.Concurrent
-import Data.IORef
-import Foreign.Store
-import Network.Wai.Handler.Warp
-import GHC.Word
+import           Control.Concurrent
+import           Control.Exception        (finally)
+import           Control.Monad            ((>=>))
+import           Data.IORef
+import           Foreign.Store
+import           GHC.Word
+import           Network.Wai.Handler.Warp
 
 update :: IO ()
 update = do
     mtidStore <- lookupStore tidStoreNum
     case mtidStore of
       -- no server running
-      Nothing -> do
-          done <- storeAction doneStore newEmptyMVar
-          tid <- start done
-          _ <- storeAction (Store tidStoreNum) (newIORef tid)
-          return ()
-      -- server is already running
-      Just tidStore -> restartAppInNewThread tidStore
+        Nothing -> do
+            done <- storeAction doneStore newEmptyMVar
+            tid  <- start done
+            _    <- storeAction (Store tidStoreNum) (newIORef tid)
+            return ()
+        -- server is already running
+        Just tidStore -> restartAppInNewThread tidStore
   where
     doneStore :: Store (MVar ())
     doneStore = Store 0
@@ -79,15 +79,18 @@ update = do
 
 
     -- | Start the server in a separate thread.
-    start :: MVar () -- ^ Written to when the thread is killed.
-          -> IO ThreadId
+    start
+        :: MVar () -- ^ Written to when the thread is killed.
+        -> IO ThreadId
     start done = do
         (port, site, app) <- getApplicationRepl
-        forkIO (finally (runSettings (setPort port defaultSettings) app)
+        forkIO
+            (finally (runSettings (setPort port defaultSettings) app)
                         -- Note that this implies concurrency
                         -- between shutdownApp and the next app that is starting.
                         -- Normally this should be fine
-                        (putMVar done () >> shutdownApp site))
+                     (putMVar done () >> shutdownApp site)
+            )
 
 -- | kill the server
 shutdown :: IO ()
@@ -95,10 +98,10 @@ shutdown = do
     mtidStore <- lookupStore tidStoreNum
     case mtidStore of
       -- no server running
-      Nothing -> putStrLn "no Yesod app running"
-      Just tidStore -> do
-          withStore tidStore $ readIORef >=> killThread
-          putStrLn "Yesod app is shutdown"
+        Nothing       -> putStrLn "no Yesod app running"
+        Just tidStore -> do
+            withStore tidStore $ readIORef >=> killThread
+            putStrLn "Yesod app is shutdown"
 
 tidStoreNum :: Word32
 tidStoreNum = 1
@@ -110,15 +113,15 @@ modifyStoredIORef store f = withStore store $ \ref -> do
 
 {-# START_FILE app/devel.hs #-}
 {-# LANGUAGE PackageImports #-}
-import "{{name}}" Application (develMain)
-import Prelude (IO)
+import           "yesod-simple-bulma" Application (develMain)
+import           Prelude                          (IO)
 
 main :: IO ()
 main = develMain
 
 {-# START_FILE app/main.hs #-}
-import Prelude     (IO)
-import Application (appMain)
+import           Application (appMain)
+import           Prelude     (IO)
 
 main :: IO ()
 main = appMain
@@ -162,8 +165,8 @@ User-agent: *
 
 {-# START_FILE config/settings.yml #-}
 static-dir:     "_env:STATIC_DIR:static"
-host:           "_env:HOST:*4" # any IPv4 host
-port:           "_env:PORT:3000" # NB: The port `yesod devel` uses is distinct from this value. Set the `yesod devel` port from the command line.
+host:           "_env:HOST:*4"
+port:           "_env:PORT:3000"
 ip-from-header: "_env:IP_FROM_HEADER:false"
 
 #approot:        "_env:APPROOT:http://localhost:3000"
@@ -291,13 +294,13 @@ flags:
     default: false
 
 {-# START_FILE src/Application.hs #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Application
     ( getApplicationDev
@@ -312,26 +315,30 @@ module Application
     , handler
     ) where
 
-import Control.Monad.Logger                 (liftLoc)
-import Import
-import Language.Haskell.TH.Syntax           (qLocation)
-import Network.Wai (Middleware)
-import Network.Wai.Handler.Warp             (Settings, defaultSettings,
-                                             defaultShouldDisplayException,
-                                             runSettings, setHost,
-                                             setOnException, setPort, getPort)
-import Network.Wai.Middleware.RequestLogger (Destination (Logger),
-                                             IPAddrSource (..),
-                                             OutputFormat (..), destination,
-                                             mkRequestLogger, outputFormat)
-import System.Log.FastLogger                (defaultBufSize, newStdoutLoggerSet,
-                                             toLogStr)
+import           Control.Monad.Logger                 (liftLoc)
+import           Import
+import           Language.Haskell.TH.Syntax           (qLocation)
+import           Network.Wai                          (Middleware)
+import           Network.Wai.Handler.Warp             (Settings,
+                                                       defaultSettings,
+                                                       defaultShouldDisplayException,
+                                                       getPort, runSettings,
+                                                       setHost, setOnException,
+                                                       setPort)
+import           Network.Wai.Middleware.RequestLogger (Destination (Logger),
+                                                       IPAddrSource (..),
+                                                       OutputFormat (..),
+                                                       destination,
+                                                       mkRequestLogger,
+                                                       outputFormat)
+import           System.Log.FastLogger                (defaultBufSize,
+                                                       newStdoutLoggerSet,
+                                                       toLogStr)
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import Handler.Common
-import Handler.Home
-import Handler.Comment
+import           Handler.Common
+import           Handler.Home
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -429,7 +436,6 @@ appMain = do
     -- Run the application with Warp
     runSettings (warpSettings foundation) app
 
-
 --------------------------------------------------------------
 -- Functions for DevelMain.hs (a way to run the app from GHCi)
 --------------------------------------------------------------
@@ -444,7 +450,6 @@ getApplicationRepl = do
 shutdownApp :: App -> IO ()
 shutdownApp _ = return ()
 
-
 ---------------------------------------------
 -- Functions for use in development with GHCi
 ---------------------------------------------
@@ -454,23 +459,23 @@ handler :: Handler a -> IO a
 handler h = getAppSettings >>= makeFoundation >>= flip unsafeHandler h
 
 {-# START_FILE src/Foundation.hs #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module Foundation where
 
-import Import.NoFoundation
-import Text.Hamlet                 (hamletFile)
-import Text.Jasmine                (minifym)
-import Yesod.Core.Types            (Logger)
-import Yesod.Default.Util          (addStaticContentExternal)
-import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
-import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Encoding   as TE
+import           Import.NoFoundation
+import           Text.Hamlet          (hamletFile)
+import           Text.Jasmine         (minifym)
+import           Yesod.Core.Types     (Logger)
+import qualified Yesod.Core.Unsafe    as Unsafe
+import           Yesod.Default.Util   (addStaticContentExternal)
 
 -- | The foundation datatype for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -484,8 +489,8 @@ data App = App
     }
 
 data MenuItem = MenuItem
-    { menuItemLabel :: Text
-    , menuItemRoute :: Route App
+    { menuItemLabel          :: Text
+    , menuItemRoute          :: Route App
     , menuItemAccessCallback :: Bool
     }
 
@@ -517,7 +522,7 @@ instance Yesod App where
     -- see: https://github.com/yesodweb/yesod/wiki/Overriding-approot
     approot = ApprootRequest $ \app req ->
         case appRoot $ appSettings app of
-            Nothing -> getApprootText guessApproot app req
+            Nothing   -> getApprootText guessApproot app req
             Just root -> root
 
     -- Store session data on the client in encrypted cookies,
@@ -572,9 +577,9 @@ instance Yesod App where
 
     -- Routes not requiring authenitcation.
     isAuthorized FaviconR _ = return Authorized
-    isAuthorized RobotsR _ = return Authorized
+    isAuthorized RobotsR _  = return Authorized
     -- Default to Authorized for now.
-    isAuthorized _ _ = return Authorized
+    isAuthorized _ _        = return Authorized
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -607,7 +612,7 @@ instance Yesod App where
 -- Define breadcrumbs.
 instance YesodBreadcrumbs App where
   breadcrumb HomeR = return ("Home", Nothing)
-  breadcrumb  _ = return ("home", Nothing)
+  breadcrumb  _    = return ("home", Nothing)
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.
