@@ -160,7 +160,7 @@ User-agent: *
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
 
-/ HomeR GET POST
+/ HomeR GET
 
 {-# START_FILE config/settings.yml #-}
 static-dir:     "_env:STATIC_DIR:static"
@@ -566,8 +566,7 @@ instance Yesod App where
     -- value passed to hamletToRepHtml cannot be a widget, this allows
     -- you to use normal widget features in default-layout.
 
-    pc <- widgetToPageContent $ do
-      addStylesheet $ StaticR css_bootstrap_css
+    pc <- widgetToPageContent $
       $(widgetFile "default-layout")
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
