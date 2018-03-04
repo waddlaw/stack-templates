@@ -994,3 +994,5 @@ withApp = before $ do
   foundation <- makeFoundation settings
   logWare    <- liftIO $ makeLogWare foundation
   return (foundation, logWare)
+  
+{-# START_FILE static/dummy #-}
