@@ -534,67 +534,67 @@ instance Yesod App where
     --   b) Validates that incoming write requests include that token in either a header or POST parameter.
     -- To add it, chain it together with the defaultMiddleware: yesodMiddleware = defaultYesodMiddleware . defaultCsrfMiddleware
     -- For details, see the CSRF documentation in the Yesod.Core.Handler module of the yesod-core package.
-    yesodMiddleware = defaultYesodMiddleware
+  yesodMiddleware = defaultYesodMiddleware
 
-    defaultLayout widget = do
-      master <- getYesod
-      mmsg <- getMessage
+  defaultLayout widget = do
+    master <- getYesod
+    mmsg <- getMessage
 
-      mcurrentRoute <- getCurrentRoute
+    mcurrentRoute <- getCurrentRoute
 
-      -- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
-      (title, parents) <- breadcrumbs
+    -- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
+    (title, parents) <- breadcrumbs
 
-      -- Define the menu items of the header.
-      let menuItems =
-            [ NavbarLeft $ MenuItem
-              { menuItemLabel = "Home"
-              , menuItemRoute = HomeR
-              , menuItemAccessCallback = True
-              }
-            ]
+    -- Define the menu items of the header.
+    let menuItems =
+          [ NavbarLeft $ MenuItem
+            { menuItemLabel = "Home"
+            , menuItemRoute = HomeR
+            , menuItemAccessCallback = True
+            }
+          ]
 
-      let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
-      let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
+    let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
+    let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
 
-      let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
-      let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
+    let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
+    let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
 
-      -- We break up the default layout into two components:
-      -- default-layout is the contents of the body tag, and
-      -- default-layout-wrapper is the entire page. Since the final
-      -- value passed to hamletToRepHtml cannot be a widget, this allows
-      -- you to use normal widget features in default-layout.
+    -- We break up the default layout into two components:
+    -- default-layout is the contents of the body tag, and
+    -- default-layout-wrapper is the entire page. Since the final
+    -- value passed to hamletToRepHtml cannot be a widget, this allows
+    -- you to use normal widget features in default-layout.
 
-      pc <- widgetToPageContent $ do
-        addStylesheet $ StaticR css_bootstrap_css
-        $(widgetFile "default-layout")
-      withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+    pc <- widgetToPageContent $ do
+      addStylesheet $ StaticR css_bootstrap_css
+      $(widgetFile "default-layout")
+    withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-    -- Routes not requiring authenitcation.
-    isAuthorized FaviconR _ = return Authorized
-    isAuthorized RobotsR _  = return Authorized
-    -- Default to Authorized for now.
-    isAuthorized _ _        = return Authorized
+  -- Routes not requiring authenitcation.
+  isAuthorized FaviconR _ = return Authorized
+  isAuthorized RobotsR _  = return Authorized
+  -- Default to Authorized for now.
+  isAuthorized _ _        = return Authorized
 
-    -- This function creates static content files in the static folder
-    -- and names them based on a hash of their content. This allows
-    -- expiration dates to be set far in the future without worry of
-    -- users receiving stale content.
-    addStaticContent ext mime content = do
-      master <- getYesod
-      let staticDir = appStaticDir $ appSettings master
-      addStaticContentExternal
-        minifym
-        genFileName
-        staticDir
-        (StaticR . flip StaticRoute [])
-        ext
-        mime
-        content
-      where
-        -- Generate a unique filename based on the content itself
-        genFileName lbs = "autogen-" ++ base64md5 lbs
+  -- This function creates static content files in the static folder
+  -- and names them based on a hash of their content. This allows
+  -- expiration dates to be set far in the future without worry of
+  -- users receiving stale content.
+  addStaticContent ext mime content = do
+    master <- getYesod
+    let staticDir = appStaticDir $ appSettings master
+    addStaticContentExternal
+      minifym
+      genFileName
+      staticDir
+      (StaticR . flip StaticRoute [])
+      ext
+      mime
+      content
+    where
+      -- Generate a unique filename based on the content itself
+      genFileName lbs = "autogen-" ++ base64md5 lbs
 
     -- What messages should be logged. The following includes all messages when
     -- in development, and warnings and errors in production.
