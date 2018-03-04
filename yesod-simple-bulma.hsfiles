@@ -26,15 +26,19 @@ cabal.sandbox.config
 ## Development
 
 ```shell
-# build
+# build & exec
 $ stack exec -- yesod devel
 
 # test
-$ stack test --flag mtax-re:library-only --flag mtax-re:dev
+$ stack test --flag yesod-simple-bulma:library-only --flag yesod-simple-bulma:dev
 
-# execution
+# Add Handler
 $ stack exec -- yesod add-handler -r ROUTE_NAME -p PATH_PATTERN -m METHOD
 ...
+
+# Update app-static-dir
+$ touch src/Settings/StaticFiles.hs
+```
 
 # Update app-static-dir
 $ touch src/Settings/StaticFiles.hs
