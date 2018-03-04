@@ -758,28 +758,28 @@ instance FromJSON AppSettings where
   parseJSON = withObject "AppSettings" $ \o -> do
     let defaultDev =
 #ifdef DEVELOPMENT
-  True
+          True
 #else
-  False
+          False
 #endif
-  appStaticDir              <- o .: "static-dir"
-  appRoot                   <- o .:? "approot"
-  appHost                   <- fromString <$> o .: "host"
-  appPort                   <- o .: "port"
-  appIpFromHeader           <- o .: "ip-from-header"
+    appStaticDir              <- o .: "static-dir"
+    appRoot                   <- o .:? "approot"
+    appHost                   <- fromString <$> o .: "host"
+    appPort                   <- o .: "port"
+    appIpFromHeader           <- o .: "ip-from-header"
 
-  dev                       <- o .:? "development"      .!= defaultDev
+    dev                       <- o .:? "development"      .!= defaultDev
 
-  appDetailedRequestLogging <- o .:? "detailed-logging" .!= dev
-  appShouldLogAll           <- o .:? "should-log-all"   .!= dev
-  appReloadTemplates        <- o .:? "reload-templates" .!= dev
-  appMutableStatic          <- o .:? "mutable-static"   .!= dev
-  appSkipCombining          <- o .:? "skip-combining"   .!= dev
+    appDetailedRequestLogging <- o .:? "detailed-logging" .!= dev
+    appShouldLogAll           <- o .:? "should-log-all"   .!= dev
+    appReloadTemplates        <- o .:? "reload-templates" .!= dev
+    appMutableStatic          <- o .:? "mutable-static"   .!= dev
+    appSkipCombining          <- o .:? "skip-combining"   .!= dev
 
-  appCopyright              <- o .: "copyright"
-  appAnalytics              <- o .:? "analytics"
+    appCopyright              <- o .: "copyright"
+    appAnalytics              <- o .:? "analytics"
 
-  return AppSettings {..}
+    return AppSettings {..}
 
 -- | Settings for 'widgetFile', such as which template languages to support and
 -- default Hamlet settings.
