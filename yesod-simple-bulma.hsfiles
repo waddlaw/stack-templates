@@ -399,10 +399,7 @@ warpSettings foundation = setPort (appPort $ appSettings foundation)
 -- | For yesod devel, return the Warp settings and WAI Application.
 getApplicationDev :: IO (Settings, Application)
 getApplicationDev = do
-  settings <- getAppSettings
-  foundation <- makeFoundation settings
-  wsettings <- getDevSettings $ warpSettings foundation
-  app <- makeApplication foundation
+  (wsettings, _, app) <- getAppInfo
   return (wsettings, app)
 
 getAppSettings :: IO AppSettings
@@ -437,11 +434,16 @@ appMain = do
 --------------------------------------------------------------
 getApplicationRepl :: IO (Int, App, Application)
 getApplicationRepl = do
+  (wsettings, foundation, app) <- getAppInfo
+  return (getPort wsettings, foundation, app)
+
+getAppInfo :: IO (Settings, App, Application)
+getAppInfo = do
   settings <- getAppSettings
   foundation <- makeFoundation settings
   wsettings <- getDevSettings $ warpSettings foundation
-  app1 <- makeApplication foundation
-  return (getPort wsettings, foundation, app1)
+  app <- makeApplication foundation
+  return (wsettings, foundation, app)
 
 shutdownApp :: App -> IO ()
 shutdownApp _ = return ()
@@ -516,10 +518,7 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
   -- Controls the base of generated URLs. For more information on modifying,
   -- see: https://github.com/yesodweb/yesod/wiki/Overriding-approot
-  approot = ApprootRequest $ \app req ->
-    case appRoot $ appSettings app of
-      Nothing   -> getApprootText guessApproot app req
-      Just root -> root
+  approot = ApprootRequest $ \app req -> fromMaybe (getApprootText guessApproot app req) (appRoot $ appSettings app)
 
   -- Store session data on the client in encrypted cookies,
   -- default session idle timeout is 120 minutes
@@ -667,10 +666,9 @@ module Handler.Home where
 import           Import
 
 getHomeR :: Handler Html
-getHomeR = do
-  defaultLayout $ do
-    setTitle "Welcome To Yesod!"
-    $(widgetFile "homepage")
+getHomeR = defaultLayout $ do
+  setTitle "Welcome To Yesod!"
+  $(widgetFile "homepage")
 
 {-# START_FILE src/Import.hs #-}
 module Import
@@ -940,7 +938,7 @@ spec = withApp $ do
     it "has correct User-agent" $ do
       get RobotsR
       bodyContains "User-agent: *"
-  describe "favicon.ico" $ do
+  describe "favicon.ico" $
     it "gives a 200" $ do
       get FaviconR
       statusIs 200
@@ -953,8 +951,8 @@ module Handler.HomeSpec (spec) where
 import           TestImport
 
 spec :: Spec
-spec = withApp $ do
-  describe "Homepage" $ do
+spec = withApp $
+  describe "Homepage" $
     it "loads the index and checks it looks right" $ do
       get HomeR
       statusIs 200
@@ -965,7 +963,6 @@ spec = withApp $ do
 {-# START_FILE test/TestImport.hs #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
 module TestImport
     ( module TestImport
     , module X
